@@ -281,14 +281,25 @@ fvm flutter test
 
 # Native channel on a device or simulator
 (cd example && fvm flutter test integration_test)
+
+# iOS native channel (XCTest, same runner as CI)
+(cd example && fvm flutter build ios --simulator --debug \
+  --target integration_test/plugin_integration_test.dart)
+(cd example/ios && xcodebuild test -workspace Runner.xcworkspace \
+  -scheme RunnerIntegrationTests -only-testing:RunnerIntegrationTests \
+  -parallel-testing-enabled NO \
+  -destination 'platform=iOS Simulator,name=<simulator>')
 ```
 
 The Flutter version used for development is pinned in `.fvmrc`.
 
-In CI, XCTest and native channel integration tests share one pre-booted iOS
-simulator, with XCTest parallel testing disabled. Simulator preparation,
-XCTest and integration tests have 5-, 10- and 10-minute limits respectively;
-the SwiftPM job has a 30-minute limit. Integration tests run with verbose logs.
+CI runs the same Dart integration tests through Flutter's native XCTest adapter
+in the dedicated `RunnerIntegrationTests` scheme, avoiding the Flutter tool's
+[simulator log-reader race](https://github.com/flutter/flutter/issues/181771)
+during VM Service discovery. The `Runner` scheme remains for state-machine tests.
+Both test steps share one pre-booted iOS simulator, with parallel testing disabled.
+Simulator preparation, unit tests and integration tests have 5-, 10- and 10-minute
+limits respectively; the SwiftPM job has a 30-minute limit.
 
 ## License
 

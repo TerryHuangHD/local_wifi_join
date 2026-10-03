@@ -276,14 +276,25 @@ fvm flutter test
 
 # 実機またはシミュレーター上のネイティブ channel
 (cd example && fvm flutter test integration_test)
+
+# iOS のネイティブ channel（XCTest、CI と同じ runner）
+(cd example && fvm flutter build ios --simulator --debug \
+  --target integration_test/plugin_integration_test.dart)
+(cd example/ios && xcodebuild test -workspace Runner.xcworkspace \
+  -scheme RunnerIntegrationTests -only-testing:RunnerIntegrationTests \
+  -parallel-testing-enabled NO \
+  -destination 'platform=iOS Simulator,name=<simulator>')
 ```
 
 開発に使用する Flutter のバージョンは `.fvmrc` で固定しています。
 
-CI では XCTest とネイティブ channel の統合テストが、起動済みの同じ iOS
-シミュレーターを使用し、XCTest の並列テストを無効にしています。
-シミュレーターの準備、XCTest、統合テストの上限はそれぞれ 5、10、10 分、
-SwiftPM ジョブの上限は 30 分です。統合テストは詳細ログを出力します。
+CI は Flutter のネイティブ XCTest adapter を使い、専用の `RunnerIntegrationTests`
+スキームで同じ Dart 統合テストを実行します。これにより、VM Service discovery 時の
+Flutter ツールの[シミュレーター log reader の競合](https://github.com/flutter/flutter/issues/181771)
+を回避します。`Runner` スキームは引き続きステートマシンのテストに使用します。
+両テストステップは起動済みの同じ iOS シミュレーターを使用し、並列テストを無効にします。
+シミュレーターの準備、ユニットテスト、統合テストの上限はそれぞれ 5、10、10 分、
+SwiftPM ジョブの上限は 30 分です。
 
 ## ライセンス
 

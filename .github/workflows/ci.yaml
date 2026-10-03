@@ -83,7 +83,19 @@ jobs:
       - name: Native channel integration tests
         timeout-minutes: 10
         working-directory: example
-        run: flutter test integration_test -d "$SIMULATOR_ID" --verbose
+        # XCTest receives Dart test results through integration_test's native
+        # adapter, avoiding the Flutter tool's simulator log-reader race:
+        # https://github.com/flutter/flutter/issues/181771
+        run: |
+          flutter build ios --simulator --debug \
+            --target integration_test/plugin_integration_test.dart
+          xcodebuild test \
+            -workspace ios/Runner.xcworkspace \
+            -scheme RunnerIntegrationTests \
+            -destination "platform=iOS Simulator,id=$SIMULATOR_ID" \
+            -parallel-testing-enabled NO \
+            -only-testing:RunnerIntegrationTests \
+            CODE_SIGNING_ALLOWED=NO
 
   # The example's Xcode project references the plugin's Swift package directly
   # (Flutter template), so CocoaPods integration is checked with a fresh app.

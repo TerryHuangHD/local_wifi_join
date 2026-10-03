@@ -263,13 +263,24 @@ fvm flutter test
 
 # 在實體裝置或模擬器上測試原生 channel
 (cd example && fvm flutter test integration_test)
+
+# iOS 原生 channel（XCTest，與 CI 使用相同 runner）
+(cd example && fvm flutter build ios --simulator --debug \
+  --target integration_test/plugin_integration_test.dart)
+(cd example/ios && xcodebuild test -workspace Runner.xcworkspace \
+  -scheme RunnerIntegrationTests -only-testing:RunnerIntegrationTests \
+  -parallel-testing-enabled NO \
+  -destination 'platform=iOS Simulator,name=<simulator>')
 ```
 
 開發使用的 Flutter 版本固定於 `.fvmrc`。
 
-CI 中，XCTest 與原生 channel 整合測試共用同一台預先啟動的 iOS 模擬器，
-並停用 XCTest 平行測試。模擬器準備、XCTest 與整合測試的時間上限分別為
-5、10、10 分鐘；SwiftPM job 的上限為 30 分鐘。整合測試會輸出 verbose log。
+CI 透過 Flutter 的原生 XCTest adapter，在獨立的 `RunnerIntegrationTests`
+scheme 中執行同一份 Dart 整合測試，避開 Flutter 工具在 VM Service discovery
+時的[模擬器 log reader 競態](https://github.com/flutter/flutter/issues/181771)。
+`Runner` scheme 仍用於狀態機測試。兩個測試步驟共用同一台預先啟動的 iOS
+模擬器，並停用平行測試。模擬器準備、單元測試與整合測試的時間上限分別為
+5、10、10 分鐘；SwiftPM job 的上限為 30 分鐘。
 
 ## 授權
 
