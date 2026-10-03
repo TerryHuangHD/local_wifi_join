@@ -1,0 +1,35 @@
+name: local_wifi_join
+description: >-
+  Join and leave a WPA2-Personal Wi-Fi access point, such as an IoT device's
+  own hotspot, on Android and iOS. Reliable on iOS 26+, with native timeouts
+  and explicit result statuses.
+version: 0.1.0
+repository: https://github.com/TerryHuangHD/local_wifi_join
+issue_tracker: https://github.com/TerryHuangHD/local_wifi_join/issues
+topics:
+  - wifi
+  - hotspot
+  - network
+  - iot
+
+environment:
+  sdk: ^3.12.0
+  flutter: ">=3.44.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_lints: ^6.0.0
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: io.github.terryhuanghd.local_wifi_join
+        pluginClass: LocalWifiJoinPlugin
+      ios:
+        pluginClass: LocalWifiJoinPlugin

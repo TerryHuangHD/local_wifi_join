@@ -1,0 +1,100 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  # Called by publish.yaml so a tag is only published after the full suite passes.
+  workflow_call:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Keep in sync with .fvmrc.
+  FLUTTER_VERSION: 3.47.4
+
+jobs:
+  dart:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+      - run: flutter pub get
+      - run: dart format --output=none --set-exit-if-changed .
+      - run: flutter analyze
+      - run: flutter test
+      - run: flutter pub publish --dry-run
+
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+      - name: Build example
+        working-directory: example
+        run: flutter build apk --debug
+      - name: Unit tests
+        working-directory: example/android
+        run: ./gradlew :local_wifi_join:testDebugUnitTest
+
+  ios-swiftpm:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+      - run: flutter config --enable-swift-package-manager
+      - name: Build example
+        working-directory: example
+        run: flutter build ios --simulator --debug
+      - name: Unit tests
+        working-directory: example/ios
+        run: |
+          device=$(xcrun simctl list devices available --json \
+            | jq -r '[.devices[][] | select(.name | startswith("iPhone"))][0].udid')
+          echo "SIMULATOR_ID=$device" >> "$GITHUB_ENV"
+          xcodebuild test \
+            -workspace Runner.xcworkspace \
+            -scheme Runner \
+            -destination "platform=iOS Simulator,id=$device" \
+            -only-testing:RunnerTests \
+            CODE_SIGNING_ALLOWED=NO
+      - name: Native channel integration tests
+        working-directory: example
+        run: |
+          # Boots the simulator if needed and waits until it is ready.
+          xcrun simctl bootstatus "$SIMULATOR_ID" -b
+          flutter test integration_test -d "$SIMULATOR_ID"
+
+  # The example's Xcode project references the plugin's Swift package directly
+  # (Flutter template), so CocoaPods integration is checked with a fresh app.
+  ios-cocoapods:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+      - run: flutter config --no-enable-swift-package-manager
+      - name: Build a CocoaPods consumer app
+        run: |
+          flutter create --platforms=ios --project-name pods_consumer "$RUNNER_TEMP/pods_consumer"
+          cd "$RUNNER_TEMP/pods_consumer"
+          flutter pub add local_wifi_join --path "$GITHUB_WORKSPACE"
+          flutter build ios --simulator --debug
+          grep -q 'local_wifi_join' ios/Podfile.lock
