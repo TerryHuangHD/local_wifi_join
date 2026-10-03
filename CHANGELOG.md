@@ -20,3 +20,5 @@ Initial release.
   `LocalWifiJoin.requestLocalNetworkPermission` (iOS Bonjour probe; concurrent
   calls are independent; platform errors report `failed`).
 - Swift Package Manager and CocoaPods support.
+- iOS CI shares a pre-booted simulator between XCTest and native channel
+  integration tests, with parallel testing disabled and bounded boot/test steps.

@@ -51,6 +51,7 @@ jobs:
 
   ios-swiftpm:
     runs-on: macos-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
@@ -61,24 +62,28 @@ jobs:
       - name: Build example
         working-directory: example
         run: flutter build ios --simulator --debug
-      - name: Unit tests
-        working-directory: example/ios
+      - name: Prepare simulator
+        timeout-minutes: 5
         run: |
           device=$(xcrun simctl list devices available --json \
             | jq -r '[.devices[][] | select(.name | startswith("iPhone"))][0].udid')
           echo "SIMULATOR_ID=$device" >> "$GITHUB_ENV"
+          xcrun simctl bootstatus "$device" -b
+      - name: Unit tests
+        timeout-minutes: 10
+        working-directory: example/ios
+        run: |
           xcodebuild test \
             -workspace Runner.xcworkspace \
             -scheme Runner \
-            -destination "platform=iOS Simulator,id=$device" \
+            -destination "platform=iOS Simulator,id=$SIMULATOR_ID" \
+            -parallel-testing-enabled NO \
             -only-testing:RunnerTests \
             CODE_SIGNING_ALLOWED=NO
       - name: Native channel integration tests
+        timeout-minutes: 10
         working-directory: example
-        run: |
-          # Boots the simulator if needed and waits until it is ready.
-          xcrun simctl bootstatus "$SIMULATOR_ID" -b
-          flutter test integration_test -d "$SIMULATOR_ID"
+        run: flutter test integration_test -d "$SIMULATOR_ID" --verbose
 
   # The example's Xcode project references the plugin's Swift package directly
   # (Flutter template), so CocoaPods integration is checked with a fresh app.

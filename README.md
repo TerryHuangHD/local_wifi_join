@@ -285,6 +285,11 @@ fvm flutter test
 
 The Flutter version used for development is pinned in `.fvmrc`.
 
+In CI, XCTest and native channel integration tests share one pre-booted iOS
+simulator, with XCTest parallel testing disabled. Simulator preparation,
+XCTest and integration tests have 5-, 10- and 10-minute limits respectively;
+the SwiftPM job has a 30-minute limit. Integration tests run with verbose logs.
+
 ## License
 
 [MIT](LICENSE)

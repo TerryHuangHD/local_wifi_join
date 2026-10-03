@@ -267,6 +267,10 @@ fvm flutter test
 
 開發使用的 Flutter 版本固定於 `.fvmrc`。
 
+CI 中，XCTest 與原生 channel 整合測試共用同一台預先啟動的 iOS 模擬器，
+並停用 XCTest 平行測試。模擬器準備、XCTest 與整合測試的時間上限分別為
+5、10、10 分鐘；SwiftPM job 的上限為 30 分鐘。整合測試會輸出 verbose log。
+
 ## 授權
 
 [MIT](LICENSE)
