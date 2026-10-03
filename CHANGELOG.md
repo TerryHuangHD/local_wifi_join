@@ -23,3 +23,4 @@ Initial release.
 - iOS CI runs Dart native channel integration tests through Flutter's XCTest
   adapter instead of VM Service discovery. Unit and integration tests share a
   pre-booted simulator, with parallel testing disabled and bounded boot/test steps.
+  Platform semantics are initialized before each integration test's handle baseline.
