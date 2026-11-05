@@ -3,7 +3,7 @@ description: >-
   Join and leave a WPA2-Personal Wi-Fi access point, such as an IoT device's
   own hotspot, on Android and iOS. Reliable on iOS 26+, with native timeouts
   and explicit result statuses.
-version: 0.1.0
+version: 0.1.1
 repository: https://github.com/TerryHuangHD/local_wifi_join
 issue_tracker: https://github.com/TerryHuangHD/local_wifi_join/issues
 topics:

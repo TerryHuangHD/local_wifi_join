@@ -4,7 +4,7 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'local_wifi_join'
-  s.version          = '0.1.0'
+  s.version          = '0.1.1'
   s.summary          = 'Join and leave a WPA2-Personal Wi-Fi access point from Flutter.'
   s.description      = <<-DESC
 Flutter plugin that joins and leaves a WPA2-Personal access point with

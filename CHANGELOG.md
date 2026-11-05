@@ -1,3 +1,7 @@
+## 0.1.1
+
+- Upgrade the FVM-managed development and CI Flutter SDK to 3.47.9.
+
 ## 0.1.0
 
 Initial release.
